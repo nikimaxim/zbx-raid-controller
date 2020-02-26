@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>4.4</version>
+    <date>2020-02-17T10:29:03Z</date>
+    <groups>
+        <group>
+            <name>Templates Users</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <template>Template Lsi RAID Controller</template>
+            <name>Template Lsi RAID Controller</name>
+            <groups>
+                <group>
+                    <name>Templates Users</name>
+                </group>
+            </groups>
+            <discovery_rules>
+                <discovery_rule>
+                    <name>Lsi Controllers Discovery</name>
+                    <key>lsi.raid[lld,ad]</key>
+                    <delay>1d</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Lsi Controller No.{#CTRL.ID}:{#CTRL.SN} state</name>
+                            <type>ZABBIX_ACTIVE</type>
+                            <key>lsi.raid[health,ad,{#CTRL.ID},main]</key>
+                            <delay>6h</delay>
+                            <history>365d</history>
+                            <trends>0</trends>
+                            <status>DISABLED</status>
+                            <value_type>TEXT</value_type>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Lsi Controllers</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{regexp(Optimal)}=0</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>{regexp(Optimal)}=1</recovery_expression>
+                                    <name>Lsi Controller No.{#CTRL.ID}:{#CTRL.SN} Status</name>
+                                    <status>DISABLED</status>
+                                    <priority>HIGH</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                        <item_prototype>
+                            <name>Lsi Controller No.{#CTRL.ID}:{#CTRL.SN} Temperature</name>
+                            <type>ZABBIX_ACTIVE</type>
+                            <key>lsi.raid[health,ad,{#CTRL.ID},temperature]</key>
+                            <delay>5m</delay>
+                            <history>365d</history>
+                            <trends>90d</trends>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Lsi Controllers</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{last()}&gt;{$TEMP_WARN}</expression>
+                                    <name>Lsi Controller No.{#CTRL.ID}:{#CTRL.SN} Temperature</name>
+                                    <priority>WARNING</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <trigger_prototypes>
+                        <trigger_prototype>
+                            <expression>{Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},main].nodata({$NODATA_TIME})}=1 or {Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},temperature].nodata({$NODATA_TIME})}=1</expression>
+                            <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                            <recovery_expression>{Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},main].nodata({$NODATA_TIME})}=0 or {Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},temperature].nodata({$NODATA_TIME})}=0</recovery_expression>
+                            <name>Lsi Controller No.{#CTRL.ID}:{#CTRL.SN} No Data</name>
+                            <priority>WARNING</priority>
+                            <manual_close>YES</manual_close>
+                        </trigger_prototype>
+                    </trigger_prototypes>
+                    <graph_prototypes>
+                        <graph_prototype>
+                            <name>Lsi RAID No. {#CTRL.ID}:{#CTRL.SN} Temperature</name>
+                            <graph_items>
+                                <graph_item>
+                                    <color>199C0D</color>
+                                    <item>
+                                        <host>Template Lsi RAID Controller</host>
+                                        <key>lsi.raid[health,ad,{#CTRL.ID},temperature]</key>
+                                    </item>
+                                </graph_item>
+                            </graph_items>
+                        </graph_prototype>
+                    </graph_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Lsi Battery Discovery</name>
+                    <key>lsi.raid[lld,bt]</key>
+                    <delay>1d</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Lsi Battery No.{#CTRL.ID} state</name>
+                            <type>ZABBIX_ACTIVE</type>
+                            <key>lsi.raid[health,ad,{#CTRL.ID},battery]</key>
+                            <delay>12h</delay>
+                            <history>365d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{nodata({$NODATA_TIME})}=1</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>{nodata({$NODATA_TIME})}=0</recovery_expression>
+                                    <name>Lsi Battery No.$CTRL.ID} No Data</name>
+                                    <priority>WARNING</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{regexp(Optimal)}=0</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>{regexp(Optimal)}=1</recovery_expression>
+                                    <name>Lsi Battery No.$CTRL.ID} Status</name>
+                                    <priority>HIGH</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Lsi Logical Drives Discovery</name>
+                    <key>lsi.raid[lld,ld]</key>
+                    <delay>3h;1h/1-7,08:00-21:00</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Lsi Logical Drive {#CTRL.ID}:{#LD.NAME} state</name>
+                            <type>ZABBIX_ACTIVE</type>
+                            <key>lsi.raid[health,ld,{#CTRL.ID},{#LD.ID}]</key>
+                            <delay>6h</delay>
+                            <history>365d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Lsi Logical Drives</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{nodata({$NODATA_TIME})}=1</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>{nodata({$NODATA_TIME})}=0</recovery_expression>
+                                    <name>Lsi Logical Drive {#LD.NAME} No Data</name>
+                                    <priority>WARNING</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{regexp(Optimal)}=0</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>{regexp(Optimal)}=1</recovery_expression>
+                                    <name>Lsi Logical Drive {#LD.NAME} status</name>
+                                    <priority>HIGH</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+                <discovery_rule>
+                    <name>Lsi Physical Drives Discovery</name>
+                    <key>lsi.raid[lld,pd]</key>
+                    <delay>3h;1h/1-7,08:00-21:00</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <name>Lsi Physical Drive {#CTRL.ID}:{#ED.ID}:{#PD.ID}:{#PD.SN} state</name>
+                            <type>ZABBIX_ACTIVE</type>
+                            <key>lsi.raid[health,pd,{#CTRL.ID},{#PD.ID},{#ED.ID}]</key>
+                            <delay>6h</delay>
+                            <history>365d</history>
+                            <trends>0</trends>
+                            <value_type>TEXT</value_type>
+                            <application_prototypes>
+                                <application_prototype>
+                                    <name>Lsi Physical Drives</name>
+                                </application_prototype>
+                            </application_prototypes>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <expression>{nodata({$NODATA_TIME})}=1</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>{nodata({$NODATA_TIME})}=0</recovery_expression>
+                                    <name>Lsi Physical Drive {#CTRL.ID}:{#ED.ID}:{#PD.ID}:{#PD.SN} No Data</name>
+                                    <priority>WARNING</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                                <trigger_prototype>
+                                    <expression>{regexp(Online)}=0</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>{regexp(Online)}=1</recovery_expression>
+                                    <name>Lsi Physical Drive {#CTRL.ID}:{#ED.ID}:{#PD.ID}:{#PD.SN} Status</name>
+                                    <priority>HIGH</priority>
+                                    <manual_close>YES</manual_close>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                </discovery_rule>
+            </discovery_rules>
+            <macros>
+                <macro>
+                    <macro>{$NODATA_TIME}</macro>
+                    <value>84600</value>
+                </macro>
+                <macro>
+                    <macro>{$TEMP_WARN}</macro>
+                    <value>85</value>
+                </macro>
+            </macros>
+        </template>
+    </templates>
+</zabbix_export>
