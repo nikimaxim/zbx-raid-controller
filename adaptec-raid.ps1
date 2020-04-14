@@ -1,6 +1,6 @@
 ﻿<#
     .VERSION
-    0.3
+    0.4
 
     .DESCRIPTION
     Author: Nikitin Maksim
@@ -23,6 +23,11 @@ Param (
 $CLI = "C:\service\StorMan\arcconf.exe"
 $PATH_CTRL_COUNT = "C:\Windows\Temp\ctrl_count"
 
+
+if ((Get-Command $CLI -ErrorAction SilentlyContinue) -eq $null) {
+    Write-Host "Could not find path: $CLI"
+    exit
+}
 
 function GetCtrlCount() {
     $ctrl_count = ((& $CLI "LIST".Split() | Where-Object {$_ -match "Controllers found"}) -split ':')[1].Trim() | Tee-Object $PATH_CTRL_COUNT
@@ -48,12 +53,14 @@ function LLDControllers() {
     $ctrl_count = GetCtrlCount
     $ctrl_json = ""
 
-    for($ctrl_id = 1; $ctrl_id -le $ctrl_count; $ctrl_id++) {
-        $response = (((& $CLI "LIST".Split() | Where-Object {$_ -match "Controller $ctrl_id"}) -split ' :')[1] -split ',')
-        $ctrl_model = "-" #$response[3].Trim()
-        $ctrl_sn = $response[4].Trim()
+    for ($ctrl_id = 1; $ctrl_id -le $ctrl_count; $ctrl_id++) {
+        $response = (((& $CLI "LIST" | Where-Object {$_ -match "Controller $ctrl_id"}) -split ' :')[1] -split ',')
+        if ($response) {
+            $ctrl_model = "-" #$response[3].Trim()
+            $ctrl_sn = $response[4].Trim()
 
-        $ctrl_json += [string]::Format('{{"{{#CTRL.ID}}":"{0}","{{#CTRL.MODEL}}":"{1}","{{#CTRL.SN}}":"{2}"}},',$ctrl_id, $ctrl_model, $ctrl_sn)
+            $ctrl_json += [string]::Format('{{"{{#CTRL.ID}}":"{0}","{{#CTRL.MODEL}}":"{1}","{{#CTRL.SN}}":"{2}"}},', $ctrl_id, $ctrl_model, $ctrl_sn)
+        }
     }
 
     return '{"data":[' + $($ctrl_json -replace ',$') + ']}'
@@ -64,11 +71,11 @@ function LLDBattery() {
     $ctrl_count = CheckCtrlCount
     $bt_json = ""
 
-    for($i = 1; $i -le $ctrl_count; $i++) {
-        $response = ((& $CLI GETCONFIG $i AD | Select-String "Controller Battery Information" -Context 0,2 | Select-String -InputObject {$_.Context.PostContext} -Pattern "Status") -split ':')
-        if($response) {
+    for ($i = 1; $i -le $ctrl_count; $i++) {
+        $response = ((& $CLI "GETCONFIG $i AD".Split() | Select-String "Controller Battery Information" -Context 0,2 | Select-String -InputObject {$_.Context.PostContext} -Pattern "Status") -split ':')
+        if ($response) {
             $bt_status = $response[1].Trim()
-            if($bt_status -ne "Not Installed") {
+            if ($bt_status -ne "Not Installed") {
                 $bt_json += [string]::Format('{{"{{#CTRL.ID}}":"{0}","{{#CTRL.BATTERY}}":"{1}"}},', $i, $i)
             }
         }
@@ -82,14 +89,16 @@ function LLDPhysicalDrives() {
     $ctrl_count = CheckCtrlCount
     $pd_json = ""
 
-    for($ctrl_id = 1; $ctrl_id -le $ctrl_count; $ctrl_id++) {
+    for ($ctrl_id = 1; $ctrl_id -le $ctrl_count; $ctrl_id++) {
         [array]$response = & $CLI "GETCONFIG $ctrl_id PD".Split() | Where-Object {$_ -match "Device\s[#]\d+|Device is |Serial number"}
 
-        for($j = 0; $j -lt $response.Length;) {
-            if(!($response[$j+1] -match "Enclosure Services Device")) {
+        for ($j = 0; $j -lt $response.Length;) {
+            if (!($response[$j+1] -match "Enclosure Services Device")) {
                 $pd_id = ($response[$j] -replace "Device #").Trim()
                 $pd_sn = ($response[$j + 2] -split ':')[1].Trim()
-                $pd_json += [string]::Format('{{"{{#CTRL.ID}}":"{0}","{{#PD.ID}}":"{1}","{{#PD.SN}}":"{2}"}},', $ctrl_id, $pd_id, $pd_sn)
+                if ($pd_sn) {
+                    $pd_json += [string]::Format('{{"{{#CTRL.ID}}":"{0}","{{#PD.ID}}":"{1}","{{#PD.SN}}":"{2}"}},', $ctrl_id, $pd_id, $pd_sn)
+                }
             }
             $j += 3
         }
@@ -103,17 +112,17 @@ function LLDLogicalDrives() {
     $ctrl_count = CheckCtrlCount
     $ld_json = ""
 
-    for($ctrl_id = 1; $ctrl_id -le $ctrl_count; $ctrl_id++) {
+    for ($ctrl_id = 1; $ctrl_id -le $ctrl_count; $ctrl_id++) {
         $response = (& $CLI "GETCONFIG $ctrl_id AD".Split() | Where-Object {$_ -match "Logical devices/Failed/Degraded"}) -match '[:\s](\d+)'
         $ld_count = $Matches[1]
 
-        for($ld_id = 0; $ld_id -lt $ld_count; $ld_id++) {
+        for ($ld_id = 0; $ld_id -lt $ld_count; $ld_id++) {
             [array]$response = & $CLI "GETCONFIG $ctrl_id LD $ld_id".Split() | Where-Object {$_ -match "Logical device name|RAID level"}
 
             $ld_name = ($response[0] -split ':')[1].Trim()
             $ld_raid = ($response[1] -split ':')[1].Trim()
 
-            if($ld_name -eq "") {
+            if ($ld_name -eq "") {
                 $ld_name = $ld_id
             }
 
@@ -132,23 +141,23 @@ function GetControllerStatus() {
 
     $value = ""
 
-    switch($ctrl_part) {
+    switch ($ctrl_part) {
         "main" {
-            $response = ((& $CLI "LIST".Split() |  Where-Object {$_ -match "Controller $ctrlid"}) -split ' :')[1] -split ','
+            $response = (((& $CLI "LIST".Split() |  Where-Object {$_ -match "Controller $ctrlid"}) -split ' :')[1] -split ',')
             if ($response) {
                 $value = $response[0].Trim()
-            }
-        }
-        "battery" {
-            $bt_status = ((& $CLI "GETCONFIG $ctrlid AD" | Select-String "Controller Battery Information" -Context 0,2 | Select-String -InputObject {$_.Context.PostContext} -Pattern "Status") -split ':')
-            if($bt_status) {
-                $value = $bt_status[1].Trim()
             }
         }
         "temperature" {
             $response = (& $CLI "GETCONFIG $ctrlid AD".Split() | Where-Object {$_ -match "^\s+Temperature\s+[:]"}) -match '(\d+).*[C]'
             if($response) {
                 $value = $Matches[1]
+            }
+        }
+        "battery" {
+            $bt_status = ((& $CLI "GETCONFIG $ctrlid AD".Split() | Select-String "Controller Battery Information" -Context 0,2 | Select-String -InputObject {$_.Context.PostContext} -Pattern "Status") -split ':')
+            if($bt_status) {
+                $value = $bt_status[1].Trim()
             }
         }
     }
@@ -159,13 +168,23 @@ function GetControllerStatus() {
 
 function GetPhysicalDriveStatus() {
     [array]$response = & $CLI "GETCONFIG $ctrlid PD".Split() | Where-Object {$_ -match "^\s+State\s+[:] "}
-    return ($response[$partid] -split ':')[1].Trim()
+
+    if ($response) {
+        return ($response[$partid] -split ':')[1].Trim()
+    } else {
+        Write-Host "Data not found"
+    }
 }
 
 
 function GetLogicalDriveStatus() {
     $response = & $CLI "GETCONFIG $ctrlid LD $partid".Split() | Where-Object {$_ -match "Status of logical device"}
-    return ($response -split ':')[1].Trim()
+
+    if ($response) {
+        return ($response -split ':')[1].Trim()
+    } else {
+        Write-Host "Data not found"
+    }
 }
 
 

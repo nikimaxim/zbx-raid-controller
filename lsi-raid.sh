@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #    .VERSION
-#    0.1
+#    0.2
 #
 #    .DESCRIPTION
 #    Author: Nikitin Maksim
@@ -10,7 +10,7 @@
 #
 #    .TESTING
 #    OS: CentOS 7 x64
-#    Controller RAID: Intel Integrated RAID Module RMS25CB080, Intel RAID Controller RS2BL040
+#    Controller RAID: Intel Integrated RAID Module RMS25CB080, Intel RAID Controller RS2BL040, LSI MegaRAID SAS 9240-4i
 #
 
 CLI='/opt/MegaRAID/MegaCli/MegaCli64'
@@ -20,30 +20,32 @@ action=$1
 part=$2
 
 
-GetCtrlCount()
-{
+if [ ! -f ${CLI} ]; then
+    echo "Could not find path: ${CLI}"
+    exit
+fi
+
+GetCtrlCount() {
     ctrl_count=$($CLI -AdpCount -NoLog | grep -i "Controller Count:" | cut -f2 -d":" | sed -e 's/^\s*//' -e 's/\.//')
-    /bin/echo ${ctrl_count} > ${PATH_CTRL_COUNT}
-    /bin/echo ${ctrl_count}
+    echo ${ctrl_count} > ${PATH_CTRL_COUNT}
+    echo ${ctrl_count}
 }
 
 
-CheckCtrlCount()
-{
+CheckCtrlCount() {
     if [ -f ${PATH_CTRL_COUNT} ]; then
-        ctrl_count=$(/bin/cat ${PATH_CTRL_COUNT})
+        ctrl_count=$(cat ${PATH_CTRL_COUNT})
         if [ -z ${ctrl_count} ]; then
             ctrl_count=$(GetCtrlCount)
         fi
     else
         ctrl_count=$(GetCtrlCount)
     fi
-    /bin/echo ${ctrl_count}
+    echo ${ctrl_count}
 }
 
 
-LLDControllers()
-{
+LLDControllers() {
     ctrl_count=$(GetCtrlCount)
     ctrl_json=""
     
@@ -58,8 +60,7 @@ LLDControllers()
 }
 
 
-LLDBattery()
-{
+LLDBattery() {
     ctrl_count=$(CheckCtrlCount)
     bt_json=""
 
@@ -74,8 +75,7 @@ LLDBattery()
 }
 
 
-LLDPhysicalDrives()
-{
+LLDPhysicalDrives() {
     ctrl_count=$(CheckCtrlCount)
     pd_json=""
 
@@ -94,8 +94,7 @@ LLDPhysicalDrives()
 }
 
 
-LLDLogicalDrives()
-{
+LLDLogicalDrives() {
     ctrl_count=$(CheckCtrlCount)
     ld_json=""
 
@@ -115,8 +114,7 @@ LLDLogicalDrives()
 }
 
 
-GetControllerStatus()
-{
+GetControllerStatus() {
     ctrl_id=$1
     ctrl_part=$2
     value=""
@@ -125,11 +123,11 @@ GetControllerStatus()
 #        "main")
 #            value=$()
 #        ;;
-        "battery")
-            value=$($CLI -AdpBbuCmd -a${ctrl_id} -NoLog | grep -i "Battery State:" | cut -f2 -d":" | sed -e 's/^\s*//')
-        ;;
         "temperature")
             value=$($CLI -AdpAllInfo -a${ctrl_id} -NoLog | grep -i "ROC temperature" | cut -f2 -d":" | cut -f2 -d" " | tr -d '\r\n' | sed -e 's/^\s*//')
+        ;;
+        "battery")
+            value=$($CLI -AdpBbuCmd -a${ctrl_id} -NoLog | grep -i "Battery State:" | cut -f2 -d":" | sed -e 's/^\s*//')
         ;;
     esac
     
@@ -137,22 +135,30 @@ GetControllerStatus()
 }
 
 
-GetPhysicalDriveStatus()
-{
+GetPhysicalDriveStatus() {
     ctrl_id=$1
     pd_id=$2
     ed_id=$3
-    
-    echo $($CLI -PDInfo -PhysDrv[${ed_id}:${pd_id}] -a${ctrl_id} -NoLog | grep -i "Firmware state:" | cut -f2 -d":" | cut -f1 -d"," | sed -e 's/^\s*//')
+    response=$($CLI -PDInfo -PhysDrv[${ed_id}:${pd_id}] -a${ctrl_id} -NoLog | grep -i "Firmware state:" | cut -f2 -d":" | cut -f1 -d"," | sed -e 's/^\s*//')
+
+    if [ -n ${response} ]; then
+        echo ${response}
+    else
+        echo "Data not found"
+    fi
 }
 
 
-GetLogicalDriveStatus()
-{
+GetLogicalDriveStatus() {
     ctrl_id=$1
     ld_id=$2
+    response=$($CLI -LDInfo -L${ld_id} -a${ctrl_id} -NoLog | grep -i "State" | cut -f2 -d":" | sed -e 's/^\s*//')
 
-    echo $($CLI -LDInfo -L${ld_id} -a${ctrl_id} -NoLog | grep -i "State" | cut -f2 -d":" | sed -e 's/^\s*//')
+    if [ -n ${response} ]; then
+        echo ${response}
+    else
+        echo "Data not found"
+    fi
 }
 
 

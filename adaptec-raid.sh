@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #    .VERSION
-#    0.2
+#    0.3
 #
 #    .DESCRIPTION
 #    Author: Nikitin Maksim
@@ -20,30 +20,32 @@ action=$1
 part=$2
 
 
-GetCtrlCount()
-{
+if [ ! -f ${CLI} ]; then
+    echo "Could not find path: ${CLI}"
+    exit
+fi
+
+GetCtrlCount() {
     ctrl_count=$($CLI LIST | grep -i "Controllers found:" | cut -f2 -d":" | sed -e 's/^\s*//')
-    /bin/echo ${ctrl_count} > ${PATH_CTRL_COUNT}
-    /bin/echo ${ctrl_count}
+    echo ${ctrl_count} > ${PATH_CTRL_COUNT}
+    echo ${ctrl_count}
 }
 
 
-CheckCtrlCount()
-{
+CheckCtrlCount() {
     if [ -f ${PATH_CTRL_COUNT} ]; then
-        ctrl_count=$(/bin/cat ${PATH_CTRL_COUNT})
+        ctrl_count=$(cat ${PATH_CTRL_COUNT})
         if [ -z ${ctrl_count} ]; then
             ctrl_count=$(GetCtrlCount)
         fi
     else
         ctrl_count=$(GetCtrlCount)
     fi
-    /bin/echo ${ctrl_count}
+    echo ${ctrl_count}
 }
 
 
-LLDControllers()
-{
+LLDControllers() {
     ctrl_count=$(GetCtrlCount)
     ctrl_json=""
 
@@ -58,14 +60,13 @@ LLDControllers()
 }
 
 
-LLDBattery()
-{
+LLDBattery() {
     ctrl_count=$(CheckCtrlCount)
     bt_json=""
 
     for ctrl_id in $(seq 1 ${ctrl_count}); do
         ctrl_bt=$($CLI GETCONFIG ${ctrl_id} AD | grep -i -A 2 "^\s*Controller Battery Information" | grep -iE "^\s+Status\s+[:]" | cut -f2 -d":" | sed -e 's/^ //' | grep -iEv "\w*\s*[Not]+\s*installed")
-        if [ -n "${ctrt}" ]; then
+        if [ -n "${ctrt_bt}" ]; then
             bt_json=${bt_json}"{\"{#CTRL.ID}\":\"${ctrl_id}\"},"
         fi
     done
@@ -74,8 +75,7 @@ LLDBattery()
 }
 
 
-LLDPhysicalDrives()
-{
+LLDPhysicalDrives() {
     ctrl_count=$(CheckCtrlCount)
     pd_json=""
     
@@ -86,9 +86,11 @@ LLDPhysicalDrives()
         while [ $i -lt ${#response[@]} ]; do
             pd_id=$(echo ${response[${i}]} | cut -f2 -d"#")
             pd_type=$(echo ${response[$((${i}+1))]} | cut -f2 -d":" | sed -e 's/^\s*//' -e 's/ /_/g')
-            if [[ ! "${pd_type}" =~ ".*Enclosure.Services.Device" ]]; then
+            if [[ ! ${pd_type} =~ "Enclosure_Services_Device" ]]; then
                 pd_sn=$(echo ${response[$((${i}+2))]} | cut -f2 -d":" | sed -e 's/^\s*//')
-                pd_json=${pd_json}"{\"{#CTRL.ID}\":\"${ctrl_id}\",\"{#PD.ID}\":\"${pd_id}\",\"{#PD.SN}\":\"${pd_sn}\"},"
+                if [ ${#pd_sn} -gt 0 ]; then
+                    pd_json=${pd_json}"{\"{#CTRL.ID}\":\"${ctrl_id}\",\"{#PD.ID}\":\"${pd_id}\",\"{#PD.SN}\":\"${pd_sn}\"},"
+                fi
             fi
             i=$(($i+3))
         done
@@ -98,8 +100,7 @@ LLDPhysicalDrives()
 }
 
 
-LLDLogicalDrives()
-{
+LLDLogicalDrives() {
     ctrl_count=$(CheckCtrlCount)
     ld_json=""
 
@@ -119,8 +120,7 @@ LLDLogicalDrives()
 }
 
 
-GetControllerStatus()
-{
+GetControllerStatus() {
     ctrl_id=$1
     ctrl_part=$2
     value=""
@@ -129,11 +129,11 @@ GetControllerStatus()
         "main")
             value=$($CLI LIST | grep "Controller ${ctrl_id}" | cut -f3 -d":" | awk -F "," '{print $1}' | sed -e 's/^\s*//')
         ;;
-        "battery")
-            value=$($CLI GETCONFIG ${ctrl_id} AD | grep -i -A 2 "^\s*Controller Battery Information" | grep -iE "^\s+Status\s+[:]" | cut -f2 -d":" | sed -e 's/^\s*//')
-        ;;
         "temperature")
             value=$($CLI GETCONFIG ${ctrl_id} AD | grep -iE "^\s+Temperature\s+[:]" | cut -f2 -d":" | awk '{print $1}')
+        ;;
+        "battery")
+            value=$($CLI GETCONFIG ${ctrl_id} AD | grep -i -A 2 "^\s*Controller Battery Information" | grep -iE "^\s+Status\s+[:]" | cut -f2 -d":" | sed -e 's/^\s*//')
         ;;
     esac
 
@@ -141,21 +141,29 @@ GetControllerStatus()
 }
 
 
-GetPhysicalDriveStatus()
-{
+GetPhysicalDriveStatus() {
     ctrl_id=$1
     pd_id=$2
+    response=$($CLI GETCONFIG ${ctrl_id} PD 0 ${pd_id} | grep -ioP "^\s+State.*$" | cut -f2 -d":" | sed -E 's/[ ]//g')
 
-    echo $($CLI GETCONFIG ${ctrl_id} PD 0 ${pd_id} | grep -ioP "^\s+State.*$" | cut -f2 -d":" | sed -E 's/[ ]//g')
+    if [ -n ${response} ]; then
+        echo ${response}
+    else
+        echo "Data not found"
+    fi
 }
 
 
-GetLogicalDriveStatus()
-{
+GetLogicalDriveStatus() {
     ctrl_id=$1
     ld_id=$2
+    response=$($CLI GETCONFIG ${ctrl_id} LD $ld_id | grep -i "Status of logical device" | cut -f2 -d":" | sed -e 's/^\s*//')
 
-    echo $($CLI GETCONFIG ${ctrl_id} LD $ld_id | grep -i "Status of logical device" | cut -f2 -d":" | sed -e 's/^\s*//')
+    if [ -n ${response} ]; then
+        echo ${response}
+    else
+        echo "Data not found"
+    fi
 }
 
 

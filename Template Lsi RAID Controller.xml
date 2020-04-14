@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>4.4</version>
-    <date>2020-02-17T10:29:03Z</date>
+    <date>2020-04-14T06:45:58Z</date>
     <groups>
         <group>
             <name>Templates Users</name>
@@ -53,8 +53,6 @@
                             <type>ZABBIX_ACTIVE</type>
                             <key>lsi.raid[health,ad,{#CTRL.ID},temperature]</key>
                             <delay>5m</delay>
-                            <history>365d</history>
-                            <trends>90d</trends>
                             <application_prototypes>
                                 <application_prototype>
                                     <name>Lsi Controllers</name>
@@ -63,6 +61,8 @@
                             <trigger_prototypes>
                                 <trigger_prototype>
                                     <expression>{last()}&gt;{$TEMP_WARN}</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>{last()}&lt;{$TEMP_WARN}-5</recovery_expression>
                                     <name>Lsi Controller No.{#CTRL.ID}:{#CTRL.SN} Temperature</name>
                                     <priority>WARNING</priority>
                                     <manual_close>YES</manual_close>
@@ -132,7 +132,7 @@
                 <discovery_rule>
                     <name>Lsi Logical Drives Discovery</name>
                     <key>lsi.raid[lld,ld]</key>
-                    <delay>3h;1h/1-7,08:00-21:00</delay>
+                    <delay>5h;1h/1-7,08:00-21:00</delay>
                     <item_prototypes>
                         <item_prototype>
                             <name>Lsi Logical Drive {#CTRL.ID}:{#LD.NAME} state</name>
@@ -171,7 +171,7 @@
                 <discovery_rule>
                     <name>Lsi Physical Drives Discovery</name>
                     <key>lsi.raid[lld,pd]</key>
-                    <delay>3h;1h/1-7,08:00-21:00</delay>
+                    <delay>5h;1h/1-7,08:00-21:00</delay>
                     <item_prototypes>
                         <item_prototype>
                             <name>Lsi Physical Drive {#CTRL.ID}:{#ED.ID}:{#PD.ID}:{#PD.SN} state</name>

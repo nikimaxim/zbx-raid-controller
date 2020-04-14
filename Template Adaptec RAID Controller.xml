@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>4.4</version>
-    <date>2020-02-17T10:28:20Z</date>
+    <date>2020-04-14T06:45:08Z</date>
     <groups>
         <group>
             <name>Templates Users</name>
@@ -18,15 +18,15 @@
             </groups>
             <discovery_rules>
                 <discovery_rule>
-                    <name>Adaptec Controllers Discovery</name>
+                    <name>Adaptec controllers discovery</name>
                     <key>adaptec.raid[lld,ad]</key>
                     <delay>1d</delay>
                     <item_prototypes>
                         <item_prototype>
-                            <name>Adaptec Controller No.{#CTRL.ID}:{#CTRL.SN} state</name>
+                            <name>Adaptec controller No.{#CTRL.ID}:{#CTRL.SN} state</name>
                             <type>ZABBIX_ACTIVE</type>
                             <key>adaptec.raid[health,ad,{#CTRL.ID},main]</key>
-                            <delay>6h</delay>
+                            <delay>1h</delay>
                             <history>365d</history>
                             <trends>0</trends>
                             <value_type>TEXT</value_type>
@@ -47,12 +47,10 @@
                             </trigger_prototypes>
                         </item_prototype>
                         <item_prototype>
-                            <name>Adaptec Controller No.{#CTRL.ID}:{#CTRL.SN} Temperature</name>
+                            <name>Adaptec controller No.{#CTRL.ID}:{#CTRL.SN} temperature</name>
                             <type>ZABBIX_ACTIVE</type>
                             <key>adaptec.raid[health,ad,{#CTRL.ID},temperature]</key>
                             <delay>5m</delay>
-                            <history>365d</history>
-                            <trends>90d</trends>
                             <application_prototypes>
                                 <application_prototype>
                                     <name>Adaptec Controllers</name>
@@ -61,6 +59,8 @@
                             <trigger_prototypes>
                                 <trigger_prototype>
                                     <expression>{last()}&gt;{$TEMP_WARN}</expression>
+                                    <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
+                                    <recovery_expression>{last()}&lt;{$TEMP_WARN}-5</recovery_expression>
                                     <name>Adaptec Controller No.{#CTRL.ID}:{#CTRL.SN} Temperature</name>
                                     <priority>WARNING</priority>
                                     <manual_close>YES</manual_close>
@@ -94,12 +94,12 @@
                     </graph_prototypes>
                 </discovery_rule>
                 <discovery_rule>
-                    <name>Adaptec Battery Discovery</name>
+                    <name>Adaptec battery discovery</name>
                     <key>adaptec.raid[lld,bt]</key>
                     <delay>1d</delay>
                     <item_prototypes>
                         <item_prototype>
-                            <name>Adaptec Battery No.{#CTRL.ID} state</name>
+                            <name>Adaptec battery No.{#CTRL.ID} state</name>
                             <type>ZABBIX_ACTIVE</type>
                             <key>adaptec.raid[health,ad,{#CTRL.ID},battery]</key>
                             <delay>12h</delay>
@@ -128,12 +128,12 @@
                     </item_prototypes>
                 </discovery_rule>
                 <discovery_rule>
-                    <name>Adaptec Logical Drives Discovery</name>
+                    <name>Adaptec logical Drives discovery</name>
                     <key>adaptec.raid[lld,ld]</key>
-                    <delay>3h;1h/1-7,08:00-21:00</delay>
+                    <delay>5h;1h/1-7,08:00-21:00</delay>
                     <item_prototypes>
                         <item_prototype>
-                            <name>Adaptec Logical Drive {#CTRL.ID}:{#LD.NAME} state</name>
+                            <name>Adaptec logical drive {#CTRL.ID}:{#LD.NAME} state</name>
                             <type>ZABBIX_ACTIVE</type>
                             <key>adaptec.raid[health,ld,{#CTRL.ID},{#LD.ID}]</key>
                             <delay>6h</delay>
@@ -167,12 +167,12 @@
                     </item_prototypes>
                 </discovery_rule>
                 <discovery_rule>
-                    <name>Adaptec Physical Drives Discovery</name>
+                    <name>Adaptec physical drives discovery</name>
                     <key>adaptec.raid[lld,pd]</key>
-                    <delay>3h;1h/1-7,08:00-21:00</delay>
+                    <delay>5h;1h/1-7,08:00-21:00</delay>
                     <item_prototypes>
                         <item_prototype>
-                            <name>Adaptec Physical Drive {#CTRL.ID}:{#PD.ID}:{#PD.SN} state</name>
+                            <name>Adaptec physical drive {#CTRL.ID}:{#PD.ID}:{#PD.SN} state</name>
                             <type>ZABBIX_ACTIVE</type>
                             <key>adaptec.raid[health,pd,{#CTRL.ID},{#PD.ID}]</key>
                             <delay>6h</delay>
@@ -189,7 +189,7 @@
                                     <expression>{nodata({$NODATA_TIME})}=1</expression>
                                     <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
                                     <recovery_expression>{nodata({$NODATA_TIME})}=0</recovery_expression>
-                                    <name>Adaptec Physical Drive {#CTRL.ID}:{#PD.ID}:{#PD.SN} No Data</name>
+                                    <name>Adaptec physical drive {#CTRL.ID}:{#PD.ID}:{#PD.SN} no data</name>
                                     <priority>WARNING</priority>
                                     <manual_close>YES</manual_close>
                                 </trigger_prototype>
@@ -197,7 +197,7 @@
                                     <expression>{regexp(Online|GlobalHot-Spare)}=0</expression>
                                     <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
                                     <recovery_expression>{regexp(Online|GlobalHot-Spare)}=1</recovery_expression>
-                                    <name>Adaptec Physical Drive {#CTRL.ID}:{#PD.ID}:{#PD.SN} Status</name>
+                                    <name>Adaptec physical drive {#CTRL.ID}:{#PD.ID}:{#PD.SN} status</name>
                                     <priority>HIGH</priority>
                                     <manual_close>YES</manual_close>
                                 </trigger_prototype>

@@ -4,7 +4,7 @@
 ### Windows Install 
 #### Requirements:
 - OS: Windows 7, 2008R2 and later
-- PowerShell: 2.0 and later
+- PowerShell: 5.1 and later
 - Zabbix-agent: 4.0 and later
 - Arcconf: 2.6 and later(Adaptec)
 - MegaCli(CMDTool2): 8.7.14 and later(Lsi)
@@ -20,15 +20,15 @@
 
 #### Copy powershell script:
 ##### For Adaptec
-- **github**/adaptec-raid.ps1 in C:\service\zabbix_agent\adaptec-raid.ps1
-##### For Lsi !!!(In developing)!!!
-- **github**/lsi-raid.ps1 in C:\service\zabbix_agent\lsi-raid.ps1
+- **github**/adaptec-raid.ps1 in C:\service\adaptec-raid.ps1
+##### For Lsi
+- **github**/lsi-raid.ps1 in C:\service\lsi-raid.ps1
 
 #### Check powershell script(Out json): (CMD!)
 ##### For Adaptec
-- powershell -NoProfile -NoLogo -ExecutionPolicy Bypass -File "C:\service\zabbix_agent\adaptec-raid.ps1" lld ad
+- powershell -NoProfile -NoLogo -ExecutionPolicy Bypass -File "C:\service\adaptec-raid.ps1" lld ad
 ##### For Lsi
-- powershell -NoProfile -NoLogo -ExecutionPolicy Bypass -File "C:\service\zabbix_agent\lsi-raid.ps1" lld ad
+- powershell -NoProfile -NoLogo -ExecutionPolicy Bypass -File "C:\service\lsi-raid.ps1" lld ad
 
 #### Add from zabbix_agentd.conf "UserParameter" in zabbix_agentd.conf zabbix_agent:
 - **github**/zabbix_agentd.conf
@@ -56,25 +56,25 @@
 
 #### Copy bash script:
 ##### For Adaptec
-- **github**/adaptec-raid.sh in /opt/zabbix_s/adaptec-raid.sh
+- **github**/adaptec-raid.sh in /opt/zabbix/adaptec-raid.sh
 ##### For Lsi
-- **github**/lsi-raid.sh in /opt/zabbix_s/lsi-raid.sh
+- **github**/lsi-raid.sh in /opt/zabbix/lsi-raid.sh
 
 #### Chmod and Chown
-- chmod -R 750 /opt/zabbix_s/
-- chown -R root:zabbix /opt/zabbix_s/
+- chmod -R 750 /opt/zabbix/
+- chown -R root:zabbix /opt/zabbix/
 
 #### Check bash script(Out json):
-- /opt/zabbix_s/adaptec-raid.sh lld ad
+- /opt/zabbix/adaptec-raid.sh lld ad
 
 #### Add from zabbix_agentd.conf "UserParameter" in zabbix_agentd.conf zabbix_agent:
 - **github**/zabbix_agentd.conf
 
 #### Add in /etc/sudoers
 ##### For Adaptec script
-zabbix  ALL=(root) NOPASSWD: /opt/zabbix_s/adaptec-raid.sh
+zabbix  ALL=(root) NOPASSWD: /opt/zabbix/adaptec-raid.sh
 ##### For Lsi script
-zabbix ALL=(root) NOPASSWD: /opt/zabbix_s/lsi-raid.sh
+zabbix ALL=(root) NOPASSWD: /opt/zabbix/lsi-raid.sh
 
 #### Import zabbix template:
 ##### For Adaptec
