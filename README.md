@@ -1,7 +1,7 @@
 ## Zabbix monitoring RAID Controller
 - https://github.com/nikimaxim/zbx-raid-controller.git
 
-### Windows Install 
+### Installing for windows
 #### Requirements:
 - OS: Windows 7, 2008R2 and later
 - PowerShell: 5.1 and later
@@ -16,7 +16,7 @@
 - intel.com
 
 #### Check correct versions PowerShell: (Execute in PowerShell!) (Requirements!)
-- Get-Host|Select-Object Version
+- ```Get-Host|Select-Object Version```
 
 #### Copy powershell script:
 ##### For Adaptec
@@ -26,9 +26,9 @@
 
 #### Check powershell script(Out json): (CMD!)
 ##### For Adaptec
-- powershell -NoProfile -NoLogo -ExecutionPolicy Bypass -File "C:\service\adaptec-raid.ps1" lld ad
+- ```powershell -NoProfile -NoLogo -ExecutionPolicy Bypass -File "C:\service\adaptec-raid.ps1" lld ad```
 ##### For Lsi
-- powershell -NoProfile -NoLogo -ExecutionPolicy Bypass -File "C:\service\lsi-raid.ps1" lld ad
+- ```powershell -NoProfile -NoLogo -ExecutionPolicy Bypass -File "C:\service\lsi-raid.ps1" lld ad```
 
 #### Add from zabbix_agentd.conf "UserParameter" in zabbix_agentd.conf zabbix_agent:
 - **github**/zabbix_agentd.conf
@@ -41,7 +41,7 @@
 
 <br/>
 
-### Linux Install 
+### Installing for linux
 #### Requirements:
 - OS: RedHat family
 - Zabbix-agent: 4.0 and later
@@ -65,7 +65,7 @@
 - chown -R root:zabbix /opt/zabbix/
 
 #### Check bash script(Out json):
-- /opt/zabbix/adaptec-raid.sh lld ad
+- ```/opt/zabbix/adaptec-raid.sh lld ad```
 
 #### Add from zabbix_agentd.conf "UserParameter" in zabbix_agentd.conf zabbix_agent:
 - **github**/zabbix_agentd.conf
