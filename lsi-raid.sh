@@ -129,6 +129,9 @@ GetControllerStatus() {
         "battery")
             value=$($CLI -AdpBbuCmd -a${ctrl_id} -NoLog | grep -i "Battery State:" | cut -f2 -d":" | sed -e 's/^\s*//')
         ;;
+        "state")
+            value=$($CLI -CfgDsply -a${ctrl_id} -NoLog | grep State | cut -f2 -d":" | sed -e 's/^\s*//' | head -n 1)
+        ;;
     esac
     
     echo ${value}
