@@ -25,7 +25,7 @@
                         <item_prototype>
                             <name>Lsi Controller No.{#CTRL.ID}:{#CTRL.SN} state</name>
                             <type>ZABBIX_ACTIVE</type>
-                            <key>lsi.raid[health,ad,{#CTRL.ID},main]</key>
+                            <key>lsi.raid[health,ad,{#CTRL.ID},state]</key>
                             <delay>6h</delay>
                             <history>365d</history>
                             <trends>0</trends>
@@ -72,9 +72,9 @@
                     </item_prototypes>
                     <trigger_prototypes>
                         <trigger_prototype>
-                            <expression>{Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},main].nodata({$NODATA_TIME})}=1 or {Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},temperature].nodata({$NODATA_TIME})}=1</expression>
+                            <expression>{Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},state].nodata({$NODATA_TIME})}=1 or {Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},temperature].nodata({$NODATA_TIME})}=1</expression>
                             <recovery_mode>RECOVERY_EXPRESSION</recovery_mode>
-                            <recovery_expression>{Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},main].nodata({$NODATA_TIME})}=0 or {Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},temperature].nodata({$NODATA_TIME})}=0</recovery_expression>
+                            <recovery_expression>{Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},state].nodata({$NODATA_TIME})}=0 or {Template Lsi RAID Controller:lsi.raid[health,ad,{#CTRL.ID},temperature].nodata({$NODATA_TIME})}=0</recovery_expression>
                             <name>Lsi Controller No.{#CTRL.ID}:{#CTRL.SN} No Data</name>
                             <priority>WARNING</priority>
                             <manual_close>YES</manual_close>
