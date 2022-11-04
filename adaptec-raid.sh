@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #    .VERSION
-#    0.4
+#    0.5
 #
 #    .DESCRIPTION
 #    Author: Nikitin Maksim
@@ -10,7 +10,7 @@
 #
 #    .TESTING
 #    OS: CentOS 7 x64
-#    Controller RAID: ASR8405, ASR-8405E, Adaptec 6805, Adaptec 6405E, Adaptec 5805
+#    Controller RAID: ASR8405, ASR-8405E, Adaptec 6805, Adaptec 6405E, ASR8805, Adaptec 5805
 #
 
 CLI='/opt/StorMan/arcconf'
@@ -81,22 +81,22 @@ LLDPhysicalDrives() {
     
     for ctrl_id in $(seq 1 ${ctrl_count}); do
         IFS=$'\n'
-        response=($($CLI GETCONFIG ${ctrl_id} PD | grep -e "Device #" -e "Device is" -e "Serial number"))
+        response=($($CLI GETCONFIG ${ctrl_id} PD | grep -e "Device #" -e "Device is" -e "Reported Channel,Device(T:L)" -e "Serial number"))
         i=0
         while [ $i -lt ${#response[@]} ]; do
             pd_type=$(echo ${response[$((${i}+1))]} | cut -f2 -d":" | sed -e 's/^\s*//' -e 's/ /_/g')
             if [[ ! ${pd_type} =~ "Enclosure_Services_Device" ]]; then
-                pd_id=$(echo ${response[${i}]} | cut -f2 -d"#")
-                pd_sn=$(echo ${response[$((${i}+2))]} | cut -f2 -d":" | sed -e 's/^\s*//')
+                pd_id=$(echo ${response[$((${i}+2))]} | awk '{print $4}' | sed -e 's/.*,\(.*\)(.*/\1/')
+                pd_sn=$(echo ${response[$((${i}+3))]} | cut -f2 -d":" | sed -e 's/^\s*//')
                 if [ ${#pd_sn} -gt 0 ]; then
                     pd_json=${pd_json}"{\"{#CTRL.ID}\":\"${ctrl_id}\",\"{#PD.ID}\":\"${pd_id}\",\"{#PD.SN}\":\"${pd_sn}\"},"
                 fi
-                i=$(($i+3))
+                i=$(($i+4))
             else
-                if [[ $(echo ${response[$((${i}+2))]}) =~ "Serial number" ]]; then
-                    i=$(($i+3))
+                if [[ $(echo ${response[$((${i}+3))]}) =~ "Serial number" ]]; then
+                    i=$(($i+4))
                 else
-                    i=$(($i+2))
+                    i=$(($i+3))
                 fi
             fi
         done
