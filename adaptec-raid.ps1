@@ -1,6 +1,6 @@
 ﻿<#
     .VERSION
-    0.4
+    0.5
 
     .DESCRIPTION
     Author: Nikitin Maksim
@@ -10,7 +10,7 @@
     .TESTING
     OS: Windows 2008R2 x64
     PowerShell: 5.1 and later
-    Controller RAID: ASR8405, ASR-8405E, Adaptec 6805, Adaptec 6405E
+    Controller RAID: ASR8405, ASR-8405E, Adaptec 6805, Adaptec 6405E, Adaptec 5805
  #>
 
 Param (
@@ -99,8 +99,14 @@ function LLDPhysicalDrives() {
                 if ($pd_sn) {
                     $pd_json += [string]::Format('{{"{{#CTRL.ID}}":"{0}","{{#PD.ID}}":"{1}","{{#PD.SN}}":"{2}"}},', $ctrl_id, $pd_id, $pd_sn)
                 }
+                $j += 3
+            } else {
+                if ($response[$j + 2] -match "Serial number") {
+                    $j += 3
+                } else {
+                    $j += 2
+                }
             }
-            $j += 3
         }
     }
 
